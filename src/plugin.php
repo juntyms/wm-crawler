@@ -97,4 +97,5 @@ class Rocket_Wpc_Plugin_Class
 
         return $service;
     }
+
 }

@@ -30,7 +30,9 @@
 		"wp-media/phpunit": "^3"
 	},
 	"autoload": {
-		"ROCKET_WP_CRAWLER\\": "./src"
+		"psr-4": {
+			"ROCKET_WP_CRAWLER\\": "./src"
+		}
 	},
 	"extra": {
 		"branch-alias": {

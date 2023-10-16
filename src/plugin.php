@@ -10,12 +10,10 @@
 
 namespace ROCKET_WP_CRAWLER;
 
-use Services\Services;
-
 /**
  * Main plugin class. It manages initialization, install, and activations.
  */
-class Rocket_Wpc_Plugin_Class extends Services
+class Rocket_Wpc_Plugin_Class
 {
     /**
      * Manages plugin initialization
@@ -75,5 +73,28 @@ class Rocket_Wpc_Plugin_Class extends Services
         }
     }
 
+    public static function get_services()
+    {
+        return [
+            Pages\Admin::class
+        ];
+    }
 
+    public function register_services()
+    {
+        foreach (self::get_services() as $class) {
+            $service = self::instantiate($class);
+            if (method_exists($service, 'register')) {
+                $service->register();
+            }
+        }
+    }
+
+    private static function instantiate($class)
+    {
+        //var_dump($class);
+        $service = new $class();
+
+        return $service;
+    }
 }

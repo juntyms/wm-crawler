@@ -5,7 +5,7 @@
 
 namespace ROCKET_WP_CRAWLER\Pages;
 
-class Settings
+class MenuSettings
 {
     public $admin_menus = [];
 
@@ -14,7 +14,7 @@ class Settings
     public function register()
     {
         if (! empty($this->admin_menus)) {
-            add_action('admin_menu', array($this, 'addAdminMenu'));
+            add_action('admin_menu', [$this, 'addAdminMenu']);
         }
     }
 

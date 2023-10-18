@@ -2,13 +2,13 @@
 /**
  * Plugin Template
  *
- * @package     wmcrawler
+ * @package     wpmcrawler
  * @author      Mathieu Lamiot
  * @copyright   2023
  * @license     GPL-2.0-or-later
  *
  * @wordpress-plugin
- * Plugin Name: WpCrawler
+ * Plugin Name: WpmCrawler
  * Version:     1
  * Description: Homepage crawler
  * Author:      Mathieu Lamiot

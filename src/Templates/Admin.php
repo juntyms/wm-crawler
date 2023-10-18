@@ -1,60 +1,44 @@
-<h1>WM Crawler</h1>
-<form action="<?php echo admin_url('admin.php?page=wpmcrawler_plugin') ?>" method="post">
+<div class="wrap">
 
-    <?php wp_nonce_field('crawl_button_clicked'); ?>
-    <input type="hidden" name="action" value="crawl_click">
-    <input type="submit" value="Start Crawl" class="button">
-</form>
+    <div class="card">
+        <h2 class="title">WPMCRAWLER Plugin</h2>
+        <p>
+        <form action="<?php echo admin_url('admin.php?page=wpmcrawler_plugin') ?>" method="post">
+
+            <?php wp_nonce_field('crawl_button_clicked'); ?>
+            <input type="hidden" name="action" value="crawl_click">
+            <input type="submit" value="Start Crawl" class="button-primary">
+        </form>
+        </p>
+    </div>
+</div>
+
 
 
 <?php
 
+use ROCKET_WP_CRAWLER\Pages\PageCrawler;
 
-if (isset($_POST['action']) && check_admin_referer('crawl_button_clicked')) {
+        if (isset($_POST['action']) && check_admin_referer('crawl_button_clicked')) {
 
-    // Delete the result from the lst crwal
+            // Delete the result from the lst crwal
 
-    // Delete the sitemap.html if exist
+            // Delete the sitemap.html if exist
 
 
-    // Extract all of the internal hyperlinks present in the homepage
+            // Extract all of the internal hyperlinks present in the homepage
 
-    $home_url = get_home_url();
 
-    $urlData = file_get_contents($home_url);
+            //$foundUrls = PageCrawler::();
 
-    $dom = new \DOMDocument();
-    @$dom->loadHTML($urlData);
+            //foreach($foundUrls as $foundUrl) {
+            //    echo $foundUrl;
+            // }
 
-    $xpath = new \DOMXPath($dom);
-    $hrefs = $xpath->evaluate("/html/body//a");
+            $page_crawl =  new PageCrawler();
 
-    for($i = 0;$i < $hrefs->length;$i++) {
-        $href = $hrefs->item($i);
-        $url = $href->getAttribute('href');
-        $url = filter_var($url, FILTER_SANITIZE_URL);
-        if(!filter_var($url, FILTER_VALIDATE_URL) === false) {
-            $urlList[] = $url;
+            $page_crawl->register();
+
+
+
         }
-    }
-
-    echo "<ul>";
-    foreach($urlList as $homepagelink) {
-        echo "<li>$homepagelink</li>";
-    }
-    echo "</ul>";
-
-
-    // store results in database
-
-    // display the results on the admin page
-
-    // save the homepage as .html in the server
-
-    // set crawl to run automatically every hour
-
-
-
-
-
-}

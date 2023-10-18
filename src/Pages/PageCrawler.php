@@ -5,65 +5,82 @@
 
 namespace ROCKET_WP_CRAWLER\Pages;
 
-use DOMXPath;
-use DOMDocument;
-
 class PageCrawler
 {
+    public function register()
+    {
+
+        add_action('delete_wpmcrawler_links', [ $this, 'delete_wpmcrawler_links']);
+
+        add_action('crawl_hook', [$this, 'start_crawl']);
+
+        do_action('crawl_hook');
+
+    }
+
     public function start_crawl()
     {
-        //$home_url = get_home_url();
 
-        // $client = new \GuzzleHttp\Client();
+        do_action('delete_wpmcrawler_links');
 
-        // $res = $client->request('GET', $home_url);
-
-        // //echo $res->getBody();
-
-        // $crawler = new Crawler($res->getBody());
-
-        // $crawler->filter('body');
-
-        // print_r($crawler);
-
-
+        // Get the Homepage URL
         $home_url = get_home_url();
 
         $urlData = file_get_contents($home_url);
-        $dom = new DOMDocument();
+
+        $dom = new \DOMDocument();
         @$dom->loadHTML($urlData);
-        $xpath = new DOMXPath($dom);
+
+        $xpath = new \DOMXPath($dom);
         $hrefs = $xpath->evaluate("/html/body//a");
+
         for($i = 0;$i < $hrefs->length;$i++) {
             $href = $hrefs->item($i);
+
             $url = $href->getAttribute('href');
+
             $url = filter_var($url, FILTER_SANITIZE_URL);
+
             if(!filter_var($url, FILTER_VALIDATE_URL) === false) {
-                $urlList[] = $url;
+                wp_insert_post([
+                    'post_title' => $url,
+                    'post_content' => $url,
+                    'post_status' => 'publish',
+                    'post_type' => 'wpmcrawler_links'
+                ]);
             }
         }
 
-        return $urlList;
+    }
 
+    public function delete_wpmcrawler_links()
+    {
 
+        // Delete all url_links post_type in the database
+        $all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+        foreach($all_url_post_links as $post_link) {
+            wp_delete_post($post_link->ID, true);
+        }
 
-        // Do homepage crawling
-
-        // Delete the result from the lst crwal
-
-        // Delete the sitemap.html if exist
-
-        // Extract all of the internal hyperlinks present in the homepage
-
-        // store results in database
-
-        // display the results on the admin page
-
-        // save the homepage as .html in the server
-
-        // set crawl to run automatically every hour
     }
 
 
 
 }
+
+
+//! Do homepage crawling -done
+
+//! Delete the result from the lst crwal - done
+
+// Delete the sitemap.html if exist
+
+//! Extract all of the internal hyperlinks present in the homepage - done
+
+//! store results in database - done
+
+// display the results on the admin page
+
+// save the homepage as .html in the server
+
+// set crawl to run automatically every hour

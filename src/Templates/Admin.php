@@ -39,6 +39,6 @@ use ROCKET_WP_CRAWLER\Pages\PageCrawler;
 
             $page_crawl->register();
 
-
+            do_action('display_links');
 
         }

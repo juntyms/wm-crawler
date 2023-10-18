@@ -7,6 +7,13 @@ namespace ROCKET_WP_CRAWLER\Pages;
 
 class PageCrawler
 {
+    public $all_url_post_links;
+    public function __construct()
+    {
+        $this->all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+
+    }
+
     public function register()
     {
 
@@ -15,6 +22,13 @@ class PageCrawler
         add_action('crawl_hook', [$this, 'start_crawl']);
 
         do_action('crawl_hook');
+
+        add_action('create_sitemap_file', [$this, 'create_sitemap']);
+
+        do_action('create_sitemap_file');
+
+        add_action('display_links', [$this, 'display_all_links']);
+
 
     }
 
@@ -57,11 +71,49 @@ class PageCrawler
     {
 
         // Delete all url_links post_type in the database
-        $all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
-        foreach($all_url_post_links as $post_link) {
+        //$all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+        foreach($this->all_url_post_links as $post_link) {
             wp_delete_post($post_link->ID, true);
         }
 
+    }
+
+
+    public function create_sitemap()
+    {
+        //$all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+
+        $myfile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/sitemap.html", "w") or die("Unable to open file!");
+
+        $header = "<html>\n
+	<head>\n
+		<title>Sitemap</title>\n
+	</head>\n
+	<body>\n";
+        fwrite($myfile, $header);
+
+        foreach($this->all_url_post_links as $post_link) {
+
+            fwrite($myfile, "<p>" . $post_link->post_content . "</p>\n");
+        }
+
+        $footer = "</body>\n
+					</html>";
+
+        fwrite($myfile, $footer);
+
+        fclose($myfile);
+    }
+
+    public function display_all_links()
+    {
+        echo '<div class="wrap">';
+        echo '<div class="card">';
+        foreach($this->all_url_post_links as $post_link) {
+            echo '<p>' . $post_link->post_content . '</p>';
+        }
+        echo '</div>';
+        echo '</div>';
     }
 
 
@@ -73,13 +125,13 @@ class PageCrawler
 
 //! Delete the result from the lst crwal - done
 
-// Delete the sitemap.html if exist
+//! Delete the sitemap.html if exist
 
 //! Extract all of the internal hyperlinks present in the homepage - done
 
 //! store results in database - done
 
-// display the results on the admin page
+//! display the results on the admin page
 
 // save the homepage as .html in the server
 

@@ -3,8 +3,7 @@
     <div class="card">
         <h2 class="title">WPMCRAWLER Plugin</h2>
         <p>
-        <form action="<?php echo admin_url('admin.php?page=wpmcrawler_plugin') ?>" method="post">
-
+        <form method="post">
             <?php wp_nonce_field('crawl_button_clicked'); ?>
             <input type="hidden" name="action" value="crawl_click">
             <input type="submit" value="Start Crawl" class="button-primary">
@@ -16,29 +15,32 @@
 
 
 <?php
+            function pageCrawler()
+            {
 
-use ROCKET_WP_CRAWLER\Pages\PageCrawler;
+                $page_crawl =  new ROCKET_WP_CRAWLER\Pages\PageCrawler();
 
-        if (isset($_POST['action']) && check_admin_referer('crawl_button_clicked')) {
+                $page_crawl->register();
 
-            // Delete the result from the lst crwal
+            }
 
-            // Delete the sitemap.html if exist
+            if (isset($_POST['action']) && check_admin_referer('crawl_button_clicked')) {
+
+                pageCrawler();
+
+                do_action('display_links');
+
+                // Clear the Hook to reset the time
+                wp_clear_scheduled_hook('hourly_crawl');
+
+                // Check if hook schedule exist
+                if(! wp_next_scheduled('hourly_crawl')) {
+                    // Add Event Schedule
+                    wp_schedule_event(time(), 'hourly', 'hourly_crawl');
+                }
+
+            }
 
 
-            // Extract all of the internal hyperlinks present in the homepage
 
-
-            //$foundUrls = PageCrawler::();
-
-            //foreach($foundUrls as $foundUrl) {
-            //    echo $foundUrl;
-            // }
-
-            $page_crawl =  new PageCrawler();
-
-            $page_crawl->register();
-
-            do_action('display_links');
-
-        }
+            ?>

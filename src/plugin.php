@@ -22,11 +22,19 @@ class Rocket_Wpc_Plugin_Class
      */
     public function __construct()
     {
+        add_action('hourly_crawl', array( $this, 'hourly_crawl' ));
 
         // Register plugin lifecycle hooks.
         register_deactivation_hook(ROCKET_CRWL_PLUGIN_FILENAME, array( $this, 'wpc_deactivate' ));
 
         $this->register_services();
+    }
+
+    public function hourly_crawl()
+    {
+        $crawl = new Pages\PageCrawler();
+
+        $crawl->insert_data();
     }
 
     /**
@@ -42,6 +50,11 @@ class Rocket_Wpc_Plugin_Class
         }
         $plugin = isset($_REQUEST['plugin']) ? sanitize_text_field(wp_unslash($_REQUEST['plugin'])) : '';
         check_admin_referer("activate-plugin_{$plugin}");
+
+        if(! wp_next_scheduled('hourly_crawl')) {
+            wp_schedule_event(time(), 'hourly', 'hourly_crawl');
+        }
+
     }
 
     /**
@@ -57,6 +70,8 @@ class Rocket_Wpc_Plugin_Class
         }
         $plugin = isset($_REQUEST['plugin']) ? sanitize_text_field(wp_unslash($_REQUEST['plugin'])) : '';
         check_admin_referer("deactivate-plugin_{$plugin}");
+
+        wp_clear_scheduled_hook('hourly_crawl');
     }
 
     /**

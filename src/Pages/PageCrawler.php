@@ -12,28 +12,25 @@ class PageCrawler
     {
         $this->all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
 
+        add_action('delete_wpmcrawler_links', [ $this, 'delete_wpmcrawler_links']);
+
+        add_action('insert_data_hook', [$this, 'insert_data']);
+
+        add_action('create_sitemap_file', [$this, 'create_sitemap']);
+
+        add_action('display_links', [$this, 'display_all_links']);
+
+        add_action('crawler_sched_event', [$this, 'insert_data']);
     }
 
     public function register()
     {
-
-        add_action('delete_wpmcrawler_links', [ $this, 'delete_wpmcrawler_links']);
-
-        add_action('crawl_hook', [$this, 'start_crawl']);
-
-        do_action('crawl_hook');
-
-        add_action('create_sitemap_file', [$this, 'create_sitemap']);
-
-        do_action('create_sitemap_file');
-
-        add_action('display_links', [$this, 'display_all_links']);
-
-
+        do_action('insert_data_hook');
     }
 
-    public function start_crawl()
+    public function insert_data()
     {
+        do_action('create_sitemap_file');
 
         do_action('delete_wpmcrawler_links');
 
@@ -65,13 +62,19 @@ class PageCrawler
             }
         }
 
+
+        // save homepage to html file
+        $homepageFile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/src/Files/homepage.html", "w") or die("Unable to open file!");
+
+        fwrite($homepageFile, $urlData);
+
+        fclose($homepageFile);
+
     }
 
     public function delete_wpmcrawler_links()
     {
-
         // Delete all url_links post_type in the database
-        //$all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
         foreach($this->all_url_post_links as $post_link) {
             wp_delete_post($post_link->ID, true);
         }
@@ -81,15 +84,14 @@ class PageCrawler
 
     public function create_sitemap()
     {
-        //$all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+        $myfile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/src/Files/sitemap.html", "w") or die("Unable to open file!");
 
-        $myfile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/sitemap.html", "w") or die("Unable to open file!");
+        $header = "<html>" . PHP_EOL;
+        $header .= "<head>" . PHP_EOL;
+        $header .= "<title>Sitemap</title>" . PHP_EOL;
+        $header .= "</head>" . PHP_EOL;
+        $header .= "<body>" . PHP_EOL;
 
-        $header = "<html>\n
-	<head>\n
-		<title>Sitemap</title>\n
-	</head>\n
-	<body>\n";
         fwrite($myfile, $header);
 
         foreach($this->all_url_post_links as $post_link) {
@@ -97,8 +99,8 @@ class PageCrawler
             fwrite($myfile, "<p>" . $post_link->post_content . "</p>\n");
         }
 
-        $footer = "</body>\n
-					</html>";
+        $footer = "</body>" . PHP_EOL;
+        $footer .= "</html>" . PHP_EOL;
 
         fwrite($myfile, $footer);
 
@@ -116,8 +118,6 @@ class PageCrawler
         echo '</div>';
     }
 
-
-
 }
 
 
@@ -133,6 +133,6 @@ class PageCrawler
 
 //! display the results on the admin page
 
-// save the homepage as .html in the server
+//! save the homepage as .html in the server
 
-// set crawl to run automatically every hour
+//! set crawl to run automatically every hour

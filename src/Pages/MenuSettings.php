@@ -69,6 +69,5 @@ class MenuSettings
             add_submenu_page($menu['parent_slug'], $menu['page_title'], $menu['menu_title'], $menu['capability'], $menu['menu_slug'], $menu['callback']);
         }
 
-
     }
 }

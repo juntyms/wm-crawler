@@ -56,6 +56,7 @@
 		"install-codestandards": "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run",
 		"phpcs": "phpcs --basepath=.",
 		"phpcs-changed": "./bin/phpcs-changed.sh",
+		"phpcsi": "phpcs -i",
 		"phpcs:fix": "phpcbf"
 	}
 }

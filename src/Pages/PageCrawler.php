@@ -5,134 +5,132 @@
 
 namespace ROCKET_WP_CRAWLER\Pages;
 
-class PageCrawler
-{
-    public $all_url_post_links;
-    public function __construct()
-    {
-        $this->all_url_post_links = get_posts(['post_type' => 'wpmcrawler_links','numberposts' => -1]);
+class PageCrawler {
 
-        add_action('delete_wpmcrawler_links', [ $this, 'delete_wpmcrawler_links']);
+	public $all_url_post_links;
+	public function __construct() {
+		$this->all_url_post_links = get_posts(
+			array(
+				'post_type'   => 'wpmcrawler_links',
+				'numberposts' => -1,
+			)
+		);
 
-        add_action('insert_data_hook', [$this, 'insert_data']);
+		add_action( 'delete_wpmcrawler_links', array( $this, 'delete_wpmcrawler_links' ) );
 
-        add_action('create_sitemap_file', [$this, 'create_sitemap']);
+		add_action( 'insert_data_hook', array( $this, 'insert_data' ) );
 
-        add_action('display_links', [$this, 'display_all_links']);
+		add_action( 'create_sitemap_file', array( $this, 'create_sitemap' ) );
 
-        add_action('crawler_sched_event', [$this, 'insert_data']);
-    }
+		add_action( 'display_links', array( $this, 'display_all_links' ) );
 
-    public function register()
-    {
-        do_action('insert_data_hook');
-    }
+		add_action( 'crawler_sched_event', array( $this, 'insert_data' ) );
+	}
 
-    public function insert_data()
-    {
-        do_action('create_sitemap_file');
+	public function register() {
+		do_action( 'insert_data_hook' );
+	}
 
-        do_action('delete_wpmcrawler_links');
+	public function insert_data() {
+		do_action( 'create_sitemap_file' );
 
-        // Get the Homepage URL
-        $home_url = get_home_url();
+		do_action( 'delete_wpmcrawler_links' );
 
-        $urlData = file_get_contents($home_url);
+		// Get the Homepage URL
+		$home_url = get_home_url();
 
-        $dom = new \DOMDocument();
-        @$dom->loadHTML($urlData);
+		$urlData = file_get_contents( $home_url );
 
-        $xpath = new \DOMXPath($dom);
-        $hrefs = $xpath->evaluate("/html/body//a");
+		$dom = new \DOMDocument();
+		@$dom->loadHTML( $urlData );
 
-        for($i = 0;$i < $hrefs->length;$i++) {
-            $href = $hrefs->item($i);
+		$xpath = new \DOMXPath( $dom );
+		$hrefs = $xpath->evaluate( '/html/body//a' );
 
-            $url = $href->getAttribute('href');
+		for ( $i = 0;$i < $hrefs->length;$i++ ) {
+			$href = $hrefs->item( $i );
 
-            $url = filter_var($url, FILTER_SANITIZE_URL);
+			$url = $href->getAttribute( 'href' );
 
-            if(!filter_var($url, FILTER_VALIDATE_URL) === false) {
-                wp_insert_post([
-                    'post_title' => $url,
-                    'post_content' => $url,
-                    'post_status' => 'publish',
-                    'post_type' => 'wpmcrawler_links'
-                ]);
-            }
-        }
+			$url = filter_var( $url, FILTER_SANITIZE_URL );
 
+			if ( ! filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
+				wp_insert_post(
+					array(
+						'post_title'   => $url,
+						'post_content' => $url,
+						'post_status'  => 'publish',
+						'post_type'    => 'wpmcrawler_links',
+					)
+				);
+			}
+		}
 
-        // save homepage to html file
-        $homepageFile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/src/Files/homepage.html", "w") or die("Unable to open file!");
+		// save homepage to html file
+		$homepageFile = fopen( dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html', 'w' ) or die( 'Unable to open file!' );
 
-        fwrite($homepageFile, $urlData);
+		fwrite( $homepageFile, $urlData );
 
-        fclose($homepageFile);
+		fclose( $homepageFile );
+	}
 
-    }
+	public function delete_wpmcrawler_links() {
+		// Delete all url_links post_type in the database
+		foreach ( $this->all_url_post_links as $post_link ) {
+			wp_delete_post( $post_link->ID, true );
+		}
+	}
 
-    public function delete_wpmcrawler_links()
-    {
-        // Delete all url_links post_type in the database
-        foreach($this->all_url_post_links as $post_link) {
-            wp_delete_post($post_link->ID, true);
-        }
+	public function create_sitemap() {
+		$myfile = fopen( dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html', 'w' ) or die( 'Unable to open file!' );
 
-    }
+		$header  = '<html>' . PHP_EOL;
+		$header .= '<head>' . PHP_EOL;
+		$header .= '<title>Sitemap</title>' . PHP_EOL;
+		$header .= '</head>' . PHP_EOL;
+		$header .= '<body>' . PHP_EOL;
 
+		fwrite( $myfile, $header );
 
-    public function create_sitemap()
-    {
-        $myfile = fopen(dirname(ROCKET_CRWL_PLUGIN_FILENAME) . "/src/Files/sitemap.html", "w") or die("Unable to open file!");
+		foreach ( $this->all_url_post_links as $post_link ) {
 
-        $header = "<html>" . PHP_EOL;
-        $header .= "<head>" . PHP_EOL;
-        $header .= "<title>Sitemap</title>" . PHP_EOL;
-        $header .= "</head>" . PHP_EOL;
-        $header .= "<body>" . PHP_EOL;
+			fwrite( $myfile, '<p>' . $post_link->post_content . "</p>\n" );
+		}
 
-        fwrite($myfile, $header);
+		$footer  = '</body>' . PHP_EOL;
+		$footer .= '</html>' . PHP_EOL;
 
-        foreach($this->all_url_post_links as $post_link) {
+		fwrite( $myfile, $footer );
 
-            fwrite($myfile, "<p>" . $post_link->post_content . "</p>\n");
-        }
+		fclose( $myfile );
+	}
 
-        $footer = "</body>" . PHP_EOL;
-        $footer .= "</html>" . PHP_EOL;
-
-        fwrite($myfile, $footer);
-
-        fclose($myfile);
-    }
-
-    public function display_all_links()
-    {
-        echo '<div class="wrap">';
-        echo '<div class="card">';
-        foreach($this->all_url_post_links as $post_link) {
-            echo '<p>' . $post_link->post_content . '</p>';
-        }
-        echo '</div>';
-        echo '</div>';
-    }
-
+	public function display_all_links() {
+		echo '<div class="wrap">';
+		echo '<div class="card">';
+		foreach ( $this->all_url_post_links as $post_link ) {
+			echo '<p>' . $post_link->post_content . '</p>';
+		}
+		echo '</div>';
+		echo '</div>';
+	}
 }
 
 
-//! Do homepage crawling -done
+// ! Do homepage crawling -done
 
-//! Delete the result from the lst crwal - done
+// ! Delete the result from the lst crwal - done
 
-//! Delete the sitemap.html if exist
+// ! Delete the sitemap.html if exist
 
-//! Extract all of the internal hyperlinks present in the homepage - done
+// ! Extract all of the internal hyperlinks present in the homepage - done
 
-//! store results in database - done
+// ! store results in database - done
 
-//! display the results on the admin page
+// ! display the results on the admin page
 
-//! save the homepage as .html in the server
+// ! save the homepage as .html in the server
 
-//! set crawl to run automatically every hour
+// ! set crawl to run automatically every hour
+
+// error occurred inform error

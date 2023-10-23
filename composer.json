@@ -8,7 +8,7 @@
 		"plugin"
 	],
 	"homepage": "https://github.com/AgentAGadge",
-	"license": "GPL-2.0+",
+	"license": "GPL-2.0-or-later",
 	"authors": [
 		{
 			"name": "Mathieu Lamiot",

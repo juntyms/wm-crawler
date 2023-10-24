@@ -25,13 +25,17 @@ class PageCrawler {
 
 		add_action( 'wpmc_delete_links', array( $this, 'wpmc_delete_links' ) );
 
-		add_action( 'wpmc_insert_data', array( $this, 'wpmc_insert_data' ) );
+		add_action( 'wpmc_crawl_page', array( $this, 'wpmc_crawl_page' ) );
 
 		add_action( 'wpmc_create_sitemap', array( $this, 'wpmc_create_sitemap' ) );
 
 		add_action( 'wpmc_display_links', array( $this, 'wpmc_display_links' ) );
 
 		add_action( 'wpmc_create_file', array( $this, 'wpmc_create_file' ), 10, 2 );
+
+		add_action( 'wpmc_start_crawl', array( $this, 'wpmc_start_crawl' ) );
+
+		add_filter( 'wpmc_insert_post', array( $this, 'wpmc_insert_post' ) );
 	}
 
 	/**
@@ -39,7 +43,43 @@ class PageCrawler {
 	 */
 	public function register() {
 
-		do_action( 'wpmc_insert_data' );
+		do_action( 'wpmc_start_crawl' );
+	}
+
+
+	/**
+	 * Method wpmc_start_crawl
+	 *
+	 * @return void
+	 */
+	public function wpmc_start_crawl() {
+
+		$links = apply_filters( 'wpmc_wpc_links', -1 );
+
+		do_action( 'wpmc_delete_links', $links );
+
+		// Get the Homepage URL.
+		$home_url = get_home_url();
+
+		// Get the content of the homepage.
+		$url_data = wp_remote_get( $home_url );
+
+		// Convert to the content to string.
+		$url_data = (string) $url_data['body'];
+
+		do_action( 'wpmc_crawl_page', $url_data );
+
+		// Get the newly added links from the database.
+		$links = apply_filters( 'wpmc_wpc_links', -1 );
+
+		// Prepare the links to be added to sitemap file.
+		do_action( 'wpmc_create_sitemap', $links );
+
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html';
+
+		$content = (string) $url_data;
+
+		do_action( 'wpmc_create_file', $content, $filename );
 	}
 
 
@@ -63,20 +103,33 @@ class PageCrawler {
 	}
 
 	/**
-	 * Method insert_data
+	 * Method wpmc_insert_post
+	 *
+	 * @param $url $url the link URL.
+	 *
+	 * @return void
 	 */
-	public function wpmc_insert_data() {
+	public function wpmc_insert_post( $url ) {
 
-		$links = apply_filters( 'wpmc_wpc_links', -1 );
+		wp_insert_post(
+			array(
+				'post_title'   => $url,
+				'post_content' => $url,
+				'post_status'  => 'publish',
+				'post_type'    => 'wpmcrawler_links',
+			)
+		);
+	}
 
-		do_action( 'wpmc_delete_links', $links );
 
-		// Get the Homepage URL.
-		$home_url = get_home_url();
-
-		$url_data = wp_remote_get( $home_url );
-
-		$url_data = (string) $url_data['body'];
+	/**
+	 * Method wpmc_crawl_page
+	 *
+	 * @param $url_data $url_data the page content.
+	 *
+	 * @return void
+	 */
+	public function wpmc_crawl_page( $url_data ) {
 
 		$dom = new \DOMDocument();
 		@$dom->loadHTML( $url_data );
@@ -92,26 +145,11 @@ class PageCrawler {
 			$url = filter_var( $url, FILTER_SANITIZE_URL );
 
 			if ( ! filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-				wp_insert_post(
-					array(
-						'post_title'   => $url,
-						'post_content' => $url,
-						'post_status'  => 'publish',
-						'post_type'    => 'wpmcrawler_links',
-					)
-				);
+
+				apply_filters( 'wpmc_insert_post', $url );
+
 			}
 		}
-
-		$links = apply_filters( 'wpmc_wpc_links', -1 );
-
-		do_action( 'wpmc_create_sitemap', $links );
-
-		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html';
-
-		$content = (string) $url_data;
-
-		do_action( 'wpmc_create_file', $content, $filename );
 	}
 
 	/**

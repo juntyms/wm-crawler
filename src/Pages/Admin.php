@@ -82,21 +82,8 @@ class Admin {
 	 * Method view_results
 	 */
 	public function view_results() {
-		$homepage_links = get_posts(
-			array(
-				'post_type'   => 'wpmcrawler_links',
-				'numberposts' => -1,
-			)
-		);
 
-		echo '<div class="wrap">';
-		echo '<div class="card">';
-		echo '<h3> Results </h3>';
-		foreach ( $homepage_links as $homepage_link ) {
-			echo '<p>' . esc_html( $homepage_link->post_content ) . '</p>';
-		}
-
-		echo '</div></div>';
+		return ( new PageCrawler() )->wpmc_display_links();
 	}
 
 	/**

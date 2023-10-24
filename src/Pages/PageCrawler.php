@@ -16,52 +16,54 @@ namespace ROCKET_WP_CRAWLER\Pages;
 class PageCrawler {
 
 	/**
-	 * Public Variable all_url_post_links
-	 *
-	 * @var mixed
-	 */
-	public $all_url_post_links;
-
-	/**
 	 * Method __construct
 	 *
 	 * @return void
 	 */
 	public function __construct() {
-		$this->all_url_post_links = get_posts(
+		add_filter( 'wpmc_wpc_links', array( $this, 'wpmc_wpc_links' ) );
+
+		add_action( 'wpmc_delete_links', array( $this, 'wpmc_delete_links' ) );
+
+		add_action( 'wpmc_insert_data', array( $this, 'wpmc_insert_data' ) );
+
+		add_action( 'wpmc_create_sitemap', array( $this, 'wpmc_create_sitemap' ) );
+
+		add_action( 'wpmc_display_links', array( $this, 'wpmc_display_links' ) );
+
+		add_action( 'wpmc_create_file_hook', array( $this, 'wpmc_create_file' ), 10, 2 );
+	}
+
+	/**
+	 * Method register
+	 */
+	public function register() {
+
+		do_action( 'wpmc_insert_data' );
+	}
+
+	/**
+	 * Method wpmc_wpc_links
+	 */
+	public function wpmc_wpc_links() {
+		$links = get_posts(
 			array(
 				'post_type'   => 'wpmcrawler_links',
 				'numberposts' => -1,
 			)
 		);
 
-		add_action( 'wpmc_delete_links', array( $this, 'wpmc_delete_links' ) );
-
-		add_action( 'wpmc_insert_data_hook', array( $this, 'insert_data' ) );
-
-		add_action( 'wpmc_create_sitemap_file', array( $this, 'create_sitemap' ) );
-
-		add_action( 'wpmc_display_links', array( $this, 'wpmc_display_links' ) );
-	}
-
-	/**
-	 * Method register
-	 *
-	 * @return void
-	 */
-	public function register() {
-		do_action( 'wpmc_insert_data_hook' );
+		return $links;
 	}
 
 	/**
 	 * Method insert_data
-	 *
-	 * @return void
 	 */
-	public function insert_data() {
-		do_action( 'wpmc_create_sitemap_file' );
+	public function wpmc_insert_data() {
 
-		do_action( 'wpmc_delete_links' );
+		$links = $this->wpmc_wpc_links();
+
+		do_action( 'wpmc_delete_links', $links );
 
 		// Get the Homepage URL.
 		$home_url = get_home_url();
@@ -95,62 +97,98 @@ class PageCrawler {
 			}
 		}
 
-		// save homepage to html file.
-		$homepage_file = fopen( dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html', 'w' ) or die( 'Unable to open file!' );
+		$links = $this->wpmc_wpc_links();
 
-		fwrite( $homepage_file, $url_data );
+		do_action( 'wpmc_create_sitemap', $links );
 
-		fclose( $homepage_file );
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html';
+
+		$content = (string) $url_data;
+
+		do_action( 'wpmc_create_file_hook', $content, $filename );
 	}
+
+	/**
+	 * Method wpmc_create_file
+	 *
+	 * @param $content  $content this is the content of the file.
+	 * @param $filename $filename the full path of the filename.
+	 */
+	public function wpmc_create_file( $content, $filename ) {
+
+		$access_type = get_filesystem_method();
+
+		if ( 'direct' === $access_type ) {
+			/* you can safely run request_filesystem_credentials() without any issues and don't need to worry about passing in a URL */
+			$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
+			/* initialize the API */
+			if ( ! WP_Filesystem( $creds ) ) {
+				/* any problems and we exit */
+				return false;
+			}
+			global $wp_filesystem;
+
+			$wp_filesystem->put_contents(
+				$filename,
+				$content,
+				FS_CHMOD_FILE // predefined mode settings for WP files.
+			);
+		}
+	}
+
 
 	/**
 	 * Method wpmc_delete_links
 	 *
+	 * @param $all_url_post_links $all_url_post_links query of custom post links.
+	 *
 	 * @return void
 	 */
-	public function wpmc_delete_links() {
+	public function wpmc_delete_links( $all_url_post_links ) {
 		// Delete all url_links post_type in the database.
-		foreach ( $this->all_url_post_links as $post_link ) {
+		foreach ( $all_url_post_links as $post_link ) {
 			wp_delete_post( $post_link->ID, true );
 		}
 	}
 
+
 	/**
-	 * Method create_sitemap
+	 * Method wpmc_create_sitemap
+	 *
+	 * @param $all_url_post_links $all_url_post_links query of custom post links.
 	 *
 	 * @return void
 	 */
-	public function create_sitemap() {
-		$myfile = fopen( dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html', 'w' ) or die( 'Unable to open file!' );
+	public function wpmc_create_sitemap( $all_url_post_links ) {
 
-		$header  = '<html>' . PHP_EOL;
-		$header .= '<head>' . PHP_EOL;
-		$header .= '<title>Sitemap</title>' . PHP_EOL;
-		$header .= '</head>' . PHP_EOL;
-		$header .= '<body>' . PHP_EOL;
+		$content  = '<html>' . PHP_EOL;
+		$content .= '<head>' . PHP_EOL;
+		$content .= '<title>Sitemap</title>' . PHP_EOL;
+		$content .= '</head>' . PHP_EOL;
+		$content .= '<body>' . PHP_EOL;
 
-		fwrite( $myfile, $header );
+		foreach ( $all_url_post_links as $post_link ) {
 
-		foreach ( $this->all_url_post_links as $post_link ) {
-
-			fwrite( $myfile, '<p>' . $post_link->post_content . "</p>\n" );
+			$content .= "<p>{$post_link->post_content}</p>\n";
 		}
 
-		$footer  = '</body>' . PHP_EOL;
-		$footer .= '</html>' . PHP_EOL;
+		$content .= '</body>' . PHP_EOL . '</html>' . PHP_EOL;
 
-		fwrite( $myfile, $footer );
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html';
 
-		fclose( $myfile );
+		do_action( 'wpmc_create_file_hook', $content, $filename );
 	}
 
 	/**
 	 * Method wpmc_display_links.
 	 */
 	public function wpmc_display_links() {
+
+		$links = $this->wpmc_wpc_links();
+
 		echo '<div class="wrap">';
 		echo '<div class="card">';
-		foreach ( $this->all_url_post_links as $post_link ) {
+		foreach ( $links as $post_link ) {
 			echo '<p>' . esc_html( $post_link->post_content ) . '</p>';
 		}
 		echo '</div>';

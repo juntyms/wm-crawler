@@ -14,7 +14,6 @@
 <?php
 
 
-
 if ( isset( $_POST['action'] ) && check_admin_referer( 'crawl_button_clicked' ) ) {
 
 	$wpmc_page_crawl = new ROCKET_WP_CRAWLER\Pages\PageCrawler();

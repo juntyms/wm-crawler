@@ -21,13 +21,6 @@ class PageCrawler {
 	 * @return void
 	 */
 	public function __construct() {
-	}
-
-	/**
-	 * Method register
-	 */
-	public function register() {
-
 		add_filter( 'wpmc_wpc_links', array( $this, 'wpmc_wpc_links' ) );
 
 		add_action( 'wpmc_delete_links', array( $this, 'wpmc_delete_links' ) );
@@ -38,7 +31,13 @@ class PageCrawler {
 
 		add_action( 'wpmc_display_links', array( $this, 'wpmc_display_links' ) );
 
-		add_action( 'wpmc_create_file', array( $this, 'wpmc_create_file') );
+		add_action( 'wpmc_create_file_hook', array( $this, 'wpmc_create_file' ), 10, 2 );
+	}
+
+	/**
+	 * Method register
+	 */
+	public function register() {
 
 		do_action( 'wpmc_insert_data' );
 	}
@@ -102,7 +101,21 @@ class PageCrawler {
 
 		do_action( 'wpmc_create_sitemap', $links );
 
-		// save homepage to html file.
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html';
+
+		$content = (string) $url_data;
+
+		do_action( 'wpmc_create_file_hook', $content, $filename );
+	}
+
+	/**
+	 * Method wpmc_create_file
+	 *
+	 * @param $content  $content this is the content of the file.
+	 * @param $filename $filename the full path of the filename.
+	 */
+	public function wpmc_create_file( $content, $filename ) {
+
 		$access_type = get_filesystem_method();
 
 		if ( 'direct' === $access_type ) {
@@ -116,14 +129,12 @@ class PageCrawler {
 			global $wp_filesystem;
 
 			$wp_filesystem->put_contents(
-				dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html',
-				$url_data,
+				$filename,
+				$content,
 				FS_CHMOD_FILE // predefined mode settings for WP files.
 			);
 		}
 	}
-
-
 
 
 	/**
@@ -149,27 +160,23 @@ class PageCrawler {
 	 * @return void
 	 */
 	public function wpmc_create_sitemap( $all_url_post_links ) {
-		$myfile = fopen( dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html', 'w' ) or die( 'Unable to open file!' );
 
-		$header  = '<html>' . PHP_EOL;
-		$header .= '<head>' . PHP_EOL;
-		$header .= '<title>Sitemap</title>' . PHP_EOL;
-		$header .= '</head>' . PHP_EOL;
-		$header .= '<body>' . PHP_EOL;
-
-		fwrite( $myfile, $header );
+		$content  = '<html>' . PHP_EOL;
+		$content .= '<head>' . PHP_EOL;
+		$content .= '<title>Sitemap</title>' . PHP_EOL;
+		$content .= '</head>' . PHP_EOL;
+		$content .= '<body>' . PHP_EOL;
 
 		foreach ( $all_url_post_links as $post_link ) {
 
-			fwrite( $myfile, '<p>' . $post_link->post_content . "</p>\n" );
+			$content .= "<p>{$post_link->post_content}</p>\n";
 		}
 
-		$footer  = '</body>' . PHP_EOL;
-		$footer .= '</html>' . PHP_EOL;
+		$content .= '</body>' . PHP_EOL . '</html>' . PHP_EOL;
 
-		fwrite( $myfile, $footer );
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html';
 
-		fclose( $myfile );
+		do_action( 'wpmc_create_file_hook', $content, $filename );
 	}
 
 	/**

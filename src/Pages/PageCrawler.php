@@ -31,7 +31,7 @@ class PageCrawler {
 
 		add_action( 'wpmc_display_links', array( $this, 'wpmc_display_links' ) );
 
-		add_action( 'wpmc_create_file_hook', array( $this, 'wpmc_create_file' ), 10, 2 );
+		add_action( 'wpmc_create_file', array( $this, 'wpmc_create_file' ), 10, 2 );
 	}
 
 	/**
@@ -42,14 +42,20 @@ class PageCrawler {
 		do_action( 'wpmc_insert_data' );
 	}
 
+
 	/**
 	 * Method wpmc_wpc_links
+	 *
+	 * @param $number_post $number_post number of post to return.
+	 *
+	 * @return $links
 	 */
-	public function wpmc_wpc_links() {
+	public function wpmc_wpc_links( $number_post ) {
+
 		$links = get_posts(
 			array(
 				'post_type'   => 'wpmcrawler_links',
-				'numberposts' => -1,
+				'numberposts' => $number_post,
 			)
 		);
 
@@ -61,7 +67,7 @@ class PageCrawler {
 	 */
 	public function wpmc_insert_data() {
 
-		$links = $this->wpmc_wpc_links();
+		$links = apply_filters( 'wpmc_wpc_links', -1 );
 
 		do_action( 'wpmc_delete_links', $links );
 
@@ -97,7 +103,7 @@ class PageCrawler {
 			}
 		}
 
-		$links = $this->wpmc_wpc_links();
+		$links = apply_filters( 'wpmc_wpc_links', -1 );
 
 		do_action( 'wpmc_create_sitemap', $links );
 
@@ -105,7 +111,7 @@ class PageCrawler {
 
 		$content = (string) $url_data;
 
-		do_action( 'wpmc_create_file_hook', $content, $filename );
+		do_action( 'wpmc_create_file', $content, $filename );
 	}
 
 	/**
@@ -176,7 +182,7 @@ class PageCrawler {
 
 		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html';
 
-		do_action( 'wpmc_create_file_hook', $content, $filename );
+		do_action( 'wpmc_create_file', $content, $filename );
 	}
 
 	/**
@@ -184,7 +190,7 @@ class PageCrawler {
 	 */
 	public function wpmc_display_links() {
 
-		$links = $this->wpmc_wpc_links();
+		$links = apply_filters( 'wpmc_wpc_links', -1 );
 
 		echo '<div class="wrap">';
 		echo '<div class="card">';

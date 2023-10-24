@@ -1,61 +1,109 @@
 <?php
 /**
- * @package WpmcrawlerPlugin
+ * Plugin main class
+ *
+ * @package     WpmcrawlerPlugin
+ * @since       2023
+ * @author      Junn Eric Timoteo
+ * @license     GPL-2.0-or-later
  */
 
 namespace ROCKET_WP_CRAWLER\Pages;
 
-use ROCKET_WP_CRAWLER\Views\Results;
 use ROCKET_WP_CRAWLER\Pages\MenuSettings;
 
-class Admin
-{
-    public $settings;
+/**
+ * Admin
+ */
+class Admin {
 
-    public $menus = array();
+	/**
+	 * Settings
+	 *
+	 * @var mixed
+	 */
+	public $settings;
 
-    public $submenus = array();
+	/**
+	 * Menus
+	 *
+	 * @var array
+	 */
+	public $menus = array();
 
-    public function __construct()
-    {
-        $this->settings = new MenuSettings();
+	/**
+	 * Submenus
+	 *
+	 * @var array
+	 */
+	public $submenus = array();
 
-        $this->menus = array(
-            array(
-                'page_title' => 'Wpmcrawler Plugin',
-                'menu_title' => 'Wpmcrawler',
-                'capability' => 'manage_options',
-                'menu_slug'  => 'wpmcrawler_plugin',
-                'callback'   => array( $this, 'view_dashboard'),
-                'icon_url'   => 'dashicons-buddicons-activity',
-                'position'   => '100',
-            ),
-        );
+	/**
+	 * Method __construct
+	 *
+	 * @return void
+	 */
+	public function __construct() {
+		$this->settings = new MenuSettings();
 
-        $this->submenus = array(
-            array(
-                'parent_slug' => 'wpmcrawler_plugin',
-                'page_title'  => 'Results',
-                'menu_title'  => 'Results',
-                'capability'  => 'manage_options',
-                'menu_slug'   => 'wpmcrawler_results',
-                'callback'    => array( $this, 'view_results' ),
-            ),
-        );
-    }
-    public function register()
-    {
-        $this->settings->addMainMenu($this->menus)->withSubMenu('Dashboard')->addSubMenus($this->submenus)->register();
-    }
+		$this->menus = array(
+			array(
+				'page_title' => 'Wpmcrawler Plugin',
+				'menu_title' => 'Wpmcrawler',
+				'capability' => 'manage_options',
+				'menu_slug'  => 'wpmcrawler_plugin',
+				'callback'   => array( $this, 'view_dashboard' ),
+				'icon_url'   => 'dashicons-buddicons-activity',
+				'position'   => '100',
+			),
+		);
 
-    public function view_results()
-    {
-        return require_once dirname(ROCKET_CRWL_PLUGIN_FILENAME) . '/src/Views/Results.php';
-    }
+		$this->submenus = array(
+			array(
+				'parent_slug' => 'wpmcrawler_plugin',
+				'page_title'  => 'Results',
+				'menu_title'  => 'Results',
+				'capability'  => 'manage_options',
+				'menu_slug'   => 'wpmcrawler_results',
+				'callback'    => array( $this, 'view_results' ),
+			),
+		);
+	}
+	/**
+	 * Method register
+	 *
+	 * @return void
+	 */
+	public function register() {
+		$this->settings->add_main_menu( $this->menus )->with_sub_menu( 'Dashboard' )->add_Sub_menus( $this->submenus )->register();
+	}
 
-    public function view_dashboard()
-    {
-        return require_once dirname(ROCKET_CRWL_PLUGIN_FILENAME) . '/src/Views/Dashboard.php';
-    }
+	/**
+	 * Method view_results
+	 */
+	public function view_results() {
+		$homepage_links = get_posts(
+			array(
+				'post_type'   => 'wpmcrawler_links',
+				'numberposts' => -1,
+			)
+		);
 
+		echo '<div class="wrap">';
+		echo '<div class="card">';
+		echo '<h3> Results </h3>';
+		foreach ( $homepage_links as $homepage_link ) {
+			echo '<p>' . esc_html( $homepage_link->post_content ) . '</p>';
+		}
+
+		echo '</div></div>';
+	}
+
+	/**
+	 * Method view_dashboard
+	 */
+	public function view_dashboard() {
+
+		return require_once dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Views/Dashboard.php';
+	}
 }

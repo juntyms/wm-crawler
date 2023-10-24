@@ -1,29 +1,60 @@
 <?php
 /**
- * @package WpmcrawlerPlugin
+ * Plugin main class
+ *
+ * @package     WpmcrawlerPlugin
+ * @since       2023
+ * @author      Junn Eric Timoteo
+ * @license     GPL-2.0-or-later
  */
 
 namespace ROCKET_WP_CRAWLER\Pages;
 
+/**
+ * MenuSettings
+ */
 class MenuSettings {
 
+	/**
+	 * Admin_menus
+	 *
+	 * @var array
+	 */
 	public $admin_menus = array();
 
+	/**
+	 * Admin_submenus
+	 *
+	 * @var array
+	 */
 	public $admin_submenus = array();
 
+	/**
+	 * Method register
+	 */
 	public function register() {
 		if ( ! empty( $this->admin_menus ) ) {
-			add_action( 'admin_menu', array( $this, 'addAdminMenu' ) );
+			add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		}
 	}
 
-	public function addMainMenu( array $menus ) {
+	/**
+	 * Method add_main_menu
+	 *
+	 * @param array $menus Array Containing the menu parameters.
+	 */
+	public function add_main_menu( array $menus ) {
 		$this->admin_menus = $menus;
 
 		return $this;
 	}
 
-	public function withSubMenu( string $title = null ) {
+	/**
+	 * Method withSubMenu
+	 *
+	 * @param string $title Title of the submenu.
+	 */
+	public function with_sub_menu( $title = null ) {
 		if ( empty( $this->admin_menus ) ) {
 			return $this;
 		}
@@ -46,13 +77,21 @@ class MenuSettings {
 		return $this;
 	}
 
-	public function addSubMenus( array $menus ) {
+	/**
+	 * Method addSubMenus
+	 *
+	 * @param array $menus array containing the submenu.
+	 */
+	public function add_sub_menus( array $menus ) {
 		$this->admin_submenus = array_merge( $this->admin_submenus, $menus );
 
 		return $this;
 	}
 
-	public function addAdminMenu() {
+	/**
+	 * Method addAdminMenu
+	 */
+	public function add_admin_menu() {
 		foreach ( $this->admin_menus as $menu ) {
 			add_menu_page( $menu['page_title'], $menu['menu_title'], $menu['capability'], $menu['menu_slug'], $menu['callback'], $menu['icon_url'], $menu['position'] );
 		}

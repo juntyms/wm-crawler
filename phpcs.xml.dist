@@ -34,7 +34,7 @@
     </rule>
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
-            <property name="prefixes" type="array" value="rocket,wp_rocket" />
+            <property name="prefixes" type="array" value="rocket,wp_rocket,wpmc" />
         </properties>
     </rule>
     <rule ref="WordPress.Files.FileName">
@@ -54,6 +54,8 @@
 	<rule ref="WordPress-Extra">
 		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
 		<exclude name="WordPress.PHP.DisallowShortTernary.Found"/>
+		<exclude name="Squiz.Operators.ValidLogicalOperators" />
+		<exclude name="WordPress.PHP.NoSilencedErrors.Discouraged" />
 	</rule>
 
 </ruleset>

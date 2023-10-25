@@ -52,13 +52,13 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
 <link rel="alternate" type="text/xml+oembed" href="http://wpmedia.local/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fwpmedia.local%2F&#038;format=xml" />
 </head>
 
-<body class="home page-template-default page page-id-13 wp-embed-responsive is-light-theme no-js singular">
+<body class="home page-template-default page page-id-13 wp-embed-responsive is-light-theme no-js singular has-main-navigation">
 <div id="page" class="site">
 	<a class="skip-link screen-reader-text" href="#content">
 		Skip to content	</a>
 
 	
-<header id="masthead" class="site-header">
+<header id="masthead" class="site-header has-menu">
 
 	
 
@@ -69,7 +69,20 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
 			
 	</div><!-- .site-branding -->
 	
-
+	<nav id="site-navigation" class="primary-navigation" aria-label="Primary menu">
+		<div class="menu-button-container">
+			<button id="primary-mobile-menu" class="button" aria-controls="primary-menu-list" aria-expanded="false">
+				<span class="dropdown-icon open">Menu					<svg class="svg-icon" width="24" height="24" aria-hidden="true" role="img" focusable="false" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 6H19.5V7.5H4.5V6ZM4.5 12H19.5V13.5H4.5V12ZM19.5 18H4.5V19.5H19.5V18Z" fill="currentColor"/></svg>				</span>
+				<span class="dropdown-icon close">Close					<svg class="svg-icon" width="24" height="24" aria-hidden="true" role="img" focusable="false" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 10.9394L5.53033 4.46973L4.46967 5.53039L10.9393 12.0001L4.46967 18.4697L5.53033 19.5304L12 13.0607L18.4697 19.5304L19.5303 18.4697L13.0607 12.0001L19.5303 5.53039L18.4697 4.46973L12 10.9394Z" fill="currentColor"/></svg>				</span>
+			</button><!-- #primary-mobile-menu -->
+		</div><!-- .menu-button-container -->
+		<div class="primary-menu-container"><ul id="primary-menu-list" class="menu-wrapper"><li id="menu-item-2697" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2697"><a href="http://wpmedia.local/manage-account/">Manage Account</a></li>
+<li id="menu-item-2698" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2698"><a href="http://wpmedia.local/about/">About</a></li>
+<li id="menu-item-2699" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2699"><a href="http://wpmedia.local/order-tracking/">Order Tracking</a></li>
+<li id="menu-item-2700" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2700"><a href="http://wpmedia.local/page-1/">Shipping Options</a></li>
+<li id="menu-item-2701" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2701"><a href="http://wpmedia.local/sample-page/">Sample Page</a></li>
+</ul></div>	</nav><!-- #site-navigation -->
+	
 </header><!-- #masthead -->
 
 	<div id="content" class="site-content">
@@ -114,6 +127,7 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
 	<script id="twenty-twenty-one-ie11-polyfills-js-after">
 ( Element.prototype.matches && Element.prototype.closest && window.NodeList && NodeList.prototype.forEach ) || document.write( '<script src="http://wpmedia.local/wp-content/themes/twentytwentyone/assets/js/polyfills.js?ver=1.9"></scr' + 'ipt>' );
 </script>
+<script src='http://wpmedia.local/wp-content/themes/twentytwentyone/assets/js/primary-navigation.js?ver=1.9' id='twenty-twenty-one-primary-navigation-script-js'></script>
 <script src='http://wpmedia.local/wp-content/themes/twentytwentyone/assets/js/responsive-embeds.js?ver=1.9' id='twenty-twenty-one-responsive-embeds-script-js'></script>
 
 </body>

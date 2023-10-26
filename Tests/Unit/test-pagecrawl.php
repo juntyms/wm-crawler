@@ -20,40 +20,49 @@ use WP_Post;
  */
 class Pagecrawl_Test extends TestCase {
 
+	private $instance;
+
+	/**
+	 * Method setUp
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// Instantiate PageCrawler Class.
+		$this->instance = new Pages\PageCrawler();
+	}
+
     function test_register()
 	{
-		$page_crawler_class = new Pages\PageCrawler();
+		$this->instance->register();
 
-		$page_crawler_class->register();
+		$this->assertNotFalse( has_filter( 'wpmc_links', [ $this->instance, 'wpmc_links' ] ) );
 
-		self::assertNotFalse( has_filter( 'wpmc_links', [ $page_crawler_class, 'wpmc_links' ] ) );
+		$this->assertNotFalse( has_action( 'wpmc_delete_links', [ $this->instance, 'wpmc_delete_links' ] ) );
 
-		self::assertNotFalse( has_action( 'wpmc_delete_links', [ $page_crawler_class, 'wpmc_delete_links' ] ) );
+		$this->assertNotFalse( has_action( 'wpmc_crawl_page', [ $this->instance, 'wpmc_crawl_page' ] ));
 
-		self::assertNotFalse( has_action( 'wpmc_crawl_page', [ $page_crawler_class, 'wpmc_crawl_page' ] ));
+		$this->assertNotFalse( has_action( 'wpmc_create_sitemap', [ $this->instance, 'wpmc_create_sitemap' ] ));
 
-		self::assertNotFalse( has_action( 'wpmc_create_sitemap', [ $page_crawler_class, 'wpmc_create_sitemap' ] ));
+		$this->assertNotFalse( has_action( 'wpmc_display_links', [ $this->instance, 'wpmc_display_links' ] ));
 
-		self::assertNotFalse( has_action( 'wpmc_display_links', [ $page_crawler_class, 'wpmc_display_links' ] ));
+		$this->assertNotFalse( has_action( 'wpmc_create_file', [ $this->instance, 'wpmc_create_file' ] ) );
 
-		self::assertNotFalse( has_action( 'wpmc_create_file', [ $page_crawler_class, 'wpmc_create_file' ] ) );
+		$this->assertNotFalse( has_action( 'wpmc_start_crawl', [ $this->instance, 'wpmc_start_crawl' ] ) );
 
-		self::assertNotFalse( has_action( 'wpmc_start_crawl', [ $page_crawler_class, 'wpmc_start_crawl' ] ) );
-
-		self::assertNotFalse( has_filter( 'wpmc_insert_post', [ $page_crawler_class, 'wpmc_insert_post' ] ) );
+		$this->assertNotFalse( has_filter( 'wpmc_insert_post', [ $this->instance, 'wpmc_insert_post' ] ) );
 
 	}
 
 	function test_wpmc_start_crawl()
 	{
-		// Instantiate Class.
-	 	$page_crawler_class = new Pages\PageCrawler();
-
 		// Call the register method.
-	 	$page_crawler_class->register();
+	 	$this->instance->register();
 
 		// Call the start_crawl Method.
-		$page_crawler_class->wpmc_start_crawl();
+		$this->instance->wpmc_start_crawl();
 
 		// Assertions.
 		$this->assertSame( 1, did_action('wpmc_delete_links') );
@@ -68,10 +77,9 @@ class Pagecrawl_Test extends TestCase {
 
 	}
 
-
 	public function test_wpmc_links() {
         // Create a mock instance of plugin class.
-        $mock_page_crawler_class = Mockery::mock(new Pages\PageCrawler());
+        $mock_page_crawler_class = Mockery::mock($this->instance);
 
         // Define the expected arguments for the wpmc_links method.
         $number_post = -1; // Set your desired number_post value.
@@ -89,5 +97,40 @@ class Pagecrawl_Test extends TestCase {
 		$this->assertSame('Record Found', $result);
 
     }
+
+	public function test_wpmc_get_url_data()
+	{
+		$homepage = 'Http://wpmedia.local';
+
+		\Brain\Monkey\Functions\expect( 'get_home_url' )
+			// We expect the function to be called once.
+			->once()
+			// What the function should return when called.
+			->andReturn( $homepage );
+
+		\Brain\Monkey\Functions\expect( 'wp_remote_get' )
+			->once()
+			->with( $homepage )
+			->andReturn(function () {
+				return [
+					'header'=>'this is header',
+					'body' => '<html><head><title>My title</title></head><body><p>body</p></body></html>'
+				];
+			});
+
+		\Brain\Monkey\Functions\expect( 'wp_remote_retrieve_body' )
+			->once()
+			->andReturn('<html><head><title>My title</title></head><body><p>body</p></body></html>');
+
+		$expected = '<html><head><title>My title</title></head><body><p>body</p></body></html>';
+
+		$result = $this->instance->wpmc_get_url_data();
+
+		$this->assertSame($expected, $result);
+
+
+	}
+
+
 }
 

@@ -61,11 +61,12 @@ class PageCrawler {
 		$home_url = get_home_url();
 
 		// Get the content of the homepage.
-		$url_data = wp_remote_get( $home_url );
+		$url_home_data = wp_remote_get( $home_url );
 
-		// Convert to the content to string.
-		$url_data = (string) $url_data['body'];
+		// Retrieve the body of the homepage.
+		$url_data = wp_remote_retrieve_body( $url_home_data );
 
+		// Return the string body of homepage.
 		return $url_data;
 	}
 

@@ -1,15 +1,13 @@
 <div class="wrap">
 	<div class="card">
-		<h2 class="title">WPMCRAWLER Plugin</h2>
+		<h2 class="title">Dashboard</h2>
 		<p>
 		<form method="post">
 			<?php wp_nonce_field( 'crawl_button_clicked' ); ?>
 			<input type="hidden" name="action" value="crawl_click">
 			<input type="submit" value="Start Crawl" class="button-primary">
 		</form>
-		</p>
-	</div>
-</div>
+
 
 <?php
 
@@ -19,6 +17,8 @@ if ( isset( $_POST['action'] ) && check_admin_referer( 'crawl_button_clicked' ) 
 	$wpmc_page_crawl = new ROCKET_WP_CRAWLER\Pages\PageCrawler();
 
 	$wpmc_page_crawl->register();
+
+	do_action( 'wpmc_start_crawl' );
 
 	// Display the links found.
 	do_action( 'wpmc_display_links' );
@@ -32,3 +32,9 @@ if ( isset( $_POST['action'] ) && check_admin_referer( 'crawl_button_clicked' ) 
 		wp_schedule_event( time(), 'hourly', 'wpmc_hourly_crawl' );
 	}
 }
+
+?>
+
+		</p>
+	</div>
+</div>

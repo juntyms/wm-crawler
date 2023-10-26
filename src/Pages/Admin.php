@@ -83,7 +83,18 @@ class Admin {
 	 */
 	public function view_results() {
 
-		return ( new PageCrawler() )->wpmc_display_links();
+		$page_crawler = new PageCrawler();
+
+		$page_crawler->register();
+
+		echo '<div class="wrap">
+			<div class="card">
+				<h2 class="title"> Results </h2>
+				<p>';
+				do_action( 'wpmc_display_links' );
+		echo '</p>
+			</div>
+		</div>';
 	}
 
 	/**

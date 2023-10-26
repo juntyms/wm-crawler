@@ -16,21 +16,19 @@ namespace ROCKET_WP_CRAWLER\Pages;
 class PageCrawler {
 
 	/**
-	 * Wpmc_error
-	 *
-	 * @var mixed
-	 */
-	public $wpmc_error;
-	/**
 	 * Method __construct
 	 *
 	 * @return void
 	 */
 	public function __construct() {
+	}
 
-		$this->wpmc_error = new \WP_Error();
+	/**
+	 * Method register
+	 */
+	public function register() {
 
-		add_filter( 'wpmc_wpc_links', array( $this, 'wpmc_wpc_links' ) );
+		add_filter( 'wpmc_links', array( $this, 'wpmc_links' ) );
 
 		add_action( 'wpmc_delete_links', array( $this, 'wpmc_delete_links' ) );
 
@@ -45,16 +43,32 @@ class PageCrawler {
 		add_action( 'wpmc_start_crawl', array( $this, 'wpmc_start_crawl' ) );
 
 		add_filter( 'wpmc_insert_post', array( $this, 'wpmc_insert_post' ) );
+
+		add_filter( 'wpmc_get_url_data', array( $this, 'wpmc_get_url_data' ) );
+
+		add_filter( 'wpmc_get_full_file_path', array( $this, 'wpmc_get_full_file_path' ) );
 	}
 
 	/**
-	 * Method register
+	 * Method wpmc_get_url_data
+	 *
+	 * @param $url_data $url_data the home url.
+	 *
+	 * @return $url_data
 	 */
-	public function register() {
+	public function wpmc_get_url_data( $url_data = null ) {
+		// Get the Homepage URL.
+		$home_url = get_home_url();
 
-		do_action( 'wpmc_start_crawl' );
+		// Get the content of the homepage.
+		$url_home_data = wp_remote_get( $home_url );
+
+		// Retrieve the body of the homepage.
+		$url_data = wp_remote_retrieve_body( $url_home_data );
+
+		// Return the string body of homepage.
+		return $url_data;
 	}
-
 
 	/**
 	 * Method wpmc_start_crawl
@@ -66,37 +80,41 @@ class PageCrawler {
 		// Delete the links found.
 		do_action( 'wpmc_delete_links' );
 
-		// Get the Homepage URL.
-		$home_url = get_home_url();
-
-		// Get the content of the homepage.
-		$url_data = wp_remote_get( $home_url );
-
-		// Convert to the content to string.
-		$url_data = (string) $url_data['body'];
+		$url_data = apply_filters( 'wpmc_get_url_data', array() );
 
 		do_action( 'wpmc_crawl_page', $url_data );
 
 		// Prepare the links to be added to sitemap file.
 		do_action( 'wpmc_create_sitemap' );
 
-		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/homepage.html';
-
-		$content = (string) $url_data;
+		$filename = apply_filters( 'wpmc_get_full_file_path', 'homepage.html' );
 
 		// Call the wpmc_create_file hook to  generate the file based on the filename and content.
-		do_action( 'wpmc_create_file', $content, $filename );
+		do_action( 'wpmc_create_file', $url_data, $filename );
 	}
 
+	/**
+	 * Method wpmc_get_full_file_path
+	 *
+	 * @param $filename $filename filename to generate the full path.
+	 *
+	 * @return $filename
+	 */
+	public function wpmc_get_full_file_path( $filename ) {
+
+		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/' . $filename;
+
+		return $filename;
+	}
 
 	/**
-	 * Method wpmc_wpc_links
+	 * Method wpmc_links
 	 *
 	 * @param $number_post $number_post number of post to return.
 	 *
 	 * @return $links
 	 */
-	public function wpmc_wpc_links( $number_post ) {
+	public function wpmc_links( $number_post ) {
 
 		$links = new \WP_Query(
 			array(
@@ -194,7 +212,7 @@ class PageCrawler {
 	 */
 	public function wpmc_delete_links() {
 
-		$links = apply_filters( 'wpmc_wpc_links', -1 );
+		$links = apply_filters( 'wpmc_links', -1 );
 
 		if ( $links->have_posts() ) {
 
@@ -216,7 +234,7 @@ class PageCrawler {
 	public function wpmc_create_sitemap() {
 
 		// Get the newly added links from the database.
-		$links = apply_filters( 'wpmc_wpc_links', -1 );
+		$links = apply_filters( 'wpmc_links', -1 );
 
 		$content  = '<html>' . PHP_EOL;
 		$content .= '<head>' . PHP_EOL;
@@ -235,7 +253,7 @@ class PageCrawler {
 
 		$content .= '</body>' . PHP_EOL . '</html>' . PHP_EOL;
 
-		$filename = (string) dirname( ROCKET_CRWL_PLUGIN_FILENAME ) . '/src/Files/sitemap.html';
+		$filename = apply_filters( 'wpmc_get_full_file_path', 'sitemap.html' );
 
 		do_action( 'wpmc_create_file', $content, $filename );
 	}
@@ -245,7 +263,9 @@ class PageCrawler {
 	 */
 	public function wpmc_display_links() {
 
-		$links = apply_filters( 'wpmc_wpc_links', -1 );
+		$wpmc_error = new \WP_Error();
+
+		$links = apply_filters( 'wpmc_links', -1 );
 
 		echo '<div class="wrap">';
 		echo '<div class="card">';
@@ -257,9 +277,9 @@ class PageCrawler {
 			}
 			wp_reset_postdata();
 		} else {
-			$this->wpmc_error->add( 'No Links', 'There is no link found on you website homepage' );
+			$wpmc_error->add( 'No Links', 'There is/are no link/s found on you website homepage' );
 
-			echo esc_html( $this->wpmc_error->get_error_message() );
+			echo esc_html( $wpmc_error->get_error_message() );
 		}
 
 		echo '</div>';

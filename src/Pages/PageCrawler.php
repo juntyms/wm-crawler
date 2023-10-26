@@ -14,15 +14,6 @@ namespace ROCKET_WP_CRAWLER\Pages;
  * PageCrawler
  */
 class PageCrawler {
-
-	/**
-	 * Method __construct
-	 *
-	 * @return void
-	 */
-	public function __construct() {
-	}
-
 	/**
 	 * Method register
 	 */

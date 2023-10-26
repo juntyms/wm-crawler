@@ -100,12 +100,10 @@ class Pagecrawl_Test extends TestCase {
 
 	public function test_wpmc_get_url_data()
 	{
-		$homepage = 'Http://wpmedia.local';
+		$homepage = 'http://wpmedia.local';
 
 		\Brain\Monkey\Functions\expect( 'get_home_url' )
-			// We expect the function to be called once.
 			->once()
-			// What the function should return when called.
 			->andReturn( $homepage );
 
 		\Brain\Monkey\Functions\expect( 'wp_remote_get' )
@@ -127,10 +125,27 @@ class Pagecrawl_Test extends TestCase {
 		$result = $this->instance->wpmc_get_url_data();
 
 		$this->assertSame($expected, $result);
-
-
 	}
 
+	public function test_wpmc_insert_post()
+	{
+		 $url = 'http://wpmedia.local';
+
+        // Create a mock of the `wp_insert_post` function
+        $wp_insert_post = Mockery::mock($this->instance);
+
+		$wp_insert_post->shouldReceive('wpmc_insert_post')
+			->once()
+			->with($url)
+			->andReturn(1);
+
+        $result = $wp_insert_post->wpmc_insert_post($url);
+
+		$expected = 1;
+
+        // Assert
+        $this->assertSame($expected, $result);
+	}
 
 }
 
